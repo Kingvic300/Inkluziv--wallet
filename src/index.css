@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Inkluziv - Accessible Crypto Wallet Design System */
+/* All colors MUST be HSL for accessibility compliance */
+
+@layer base {
+  :root {
+    /* Base Colors */
+    --background: 240 10% 99%;
+    --foreground: 240 10% 8%;
+
+    /* Card System */
+    --card: 240 10% 98%;
+    --card-foreground: 240 10% 8%;
+
+    /* Popover System */
+    --popover: 240 10% 99%;
+    --popover-foreground: 240 10% 8%;
+
+    /* Crypto-themed Primary Colors */
+    --primary: 258 90% 66%;
+    --primary-foreground: 240 10% 99%;
+    --primary-glow: 258 100% 80%;
+    --primary-dark: 258 90% 45%;
+
+    /* Accessible Secondary Colors */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 8%;
+
+    /* Muted Colors */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    /* Accent Colors */
+    --accent: 142 76% 36%;
+    --accent-foreground: 240 10% 99%;
+    --accent-glow: 142 86% 55%;
+
+    /* Status Colors - High Contrast for Accessibility */
+    --success: 142 76% 36%;
+    --success-foreground: 240 10% 99%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 10% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 240 10% 99%;
+
+    /* Input & Border System */
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 258 90% 66%;
+
+    /* Gradients for Modern Appeal */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted)));
+
+    /* Shadows for Depth */
+    --shadow-soft: 0 2px 8px -2px hsl(var(--primary) / 0.1);
+    --shadow-medium: 0 8px 24px -4px hsl(var(--primary) / 0.15);
+    --shadow-strong: 0 16px 40px -8px hsl(var(--primary) / 0.25);
+
+    /* Typography Scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+
+    /* Spacing for Touch Targets */
+    --touch-target: 44px;
+    --radius: 0.75rem;
+
+    /* Animation Variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 240 5% 96%;
+
+    --card: 240 10% 6%;
+    --card-foreground: 240 5% 96%;
+
+    --popover: 240 10% 6%;
+    --popover-foreground: 240 5% 96%;
+
+    --primary: 258 90% 70%;
+    --primary-foreground: 240 10% 4%;
+    --primary-glow: 258 100% 85%;
+    --primary-dark: 258 90% 50%;
+
+    --secondary: 240 4% 12%;
+    --secondary-foreground: 240 5% 96%;
+
+    --muted: 240 4% 12%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 142 86% 55%;
+    --accent-foreground: 240 10% 4%;
+    --accent-glow: 142 96% 70%;
+
+    --success: 142 86% 55%;
+    --success-foreground: 240 10% 4%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 240 10% 4%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 240 10% 4%;
+
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 258 90% 70%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted)));
+
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 8px 24px -4px hsl(0 0% 0% / 0.4);
+    --shadow-strong: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
+  }
+
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --primary: 240 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 100%;
+    --ring: 240 100% 50%;
+  }
+
+  .high-contrast.dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 60 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --border: 0 0% 100%;
+    --input: 0 0% 0%;
+    --ring: 60 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
