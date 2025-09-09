@@ -6,6 +6,7 @@ import {
   Wallet, 
   ArrowLeftRight, 
   Coins, 
+  Banknote,
   History, 
   Settings,
   User
@@ -41,6 +42,12 @@ const navItems: NavItem[] = [
     icon: ArrowLeftRight,
     label: 'Swap',
     description: 'Exchange tokens'
+  },
+  {
+    to: '/fiat',
+    icon: Banknote,
+    label: 'Fiat',
+    description: 'Buy/sell with NGN'
   },
   {
     to: '/staking',

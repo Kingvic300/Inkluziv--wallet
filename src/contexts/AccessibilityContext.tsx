@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AccessibilitySettings {
   fontSize: 'small' | 'medium' | 'large' | 'extra-large';
-  theme: 'light' | 'dark' | 'high-contrast';
+  theme: 'dark' | 'light' | 'high-contrast';
   reducedMotion: boolean;
   voiceEnabled: boolean;
   screenReaderMode: boolean;
@@ -19,21 +19,43 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<AccessibilitySettings>({
     fontSize: 'medium',
-    theme: 'light',
+    theme: 'dark',
     reducedMotion: false,
     voiceEnabled: true,
     screenReaderMode: false,
   });
 
   useEffect(() => {
+    // Load saved settings from localStorage
+    const savedSettings = localStorage.getItem('inkluziv-accessibility-settings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.warn('Failed to load accessibility settings:', error);
+      }
+    } else {
+      // Set dark mode as default for new users
+      setSettings(prev => ({ ...prev, theme: 'dark' }));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save settings to localStorage whenever they change
+    localStorage.setItem('inkluziv-accessibility-settings', JSON.stringify(settings));
+    
     // Apply theme to document
     const root = document.documentElement;
     root.className = '';
     
-    if (settings.theme === 'dark') {
-      root.classList.add('dark');
+    if (settings.theme === 'light') {
+      root.classList.add('light');
     } else if (settings.theme === 'high-contrast') {
       root.classList.add('high-contrast');
+    } else {
+      // Default to dark theme
+      root.classList.add('dark');
     }
 
     // Apply font size

@@ -7,6 +7,7 @@ import {
   ArrowUpRight, 
   ArrowDownLeft,
   Coins,
+  Banknote,
   Plus
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -41,19 +42,19 @@ export const DashboardPage: React.FC = () => {
       color: 'bg-success/10 text-success'
     },
     {
+      icon: Banknote,
+      label: 'Buy/Sell',
+      description: 'Trade with Nigerian Naira',
+      href: '/fiat',
+      color: 'bg-warning/10 text-warning'
+    },
+    {
       icon: ArrowUpRight,
       label: 'Swap',
       description: 'Exchange one token for another',
       href: '/swap',
       color: 'bg-primary/10 text-primary'
     },
-    {
-      icon: Coins,
-      label: 'Stake',
-      description: 'Stake tokens to earn rewards',
-      href: '/staking',
-      color: 'bg-accent/10 text-accent'
-    }
   ];
 
   React.useEffect(() => {

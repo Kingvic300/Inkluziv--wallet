@@ -24,6 +24,16 @@ export const useVoiceCommands = () => {
       description: 'Navigate to wallet balance'
     },
     {
+      command: 'buy crypto',
+      action: () => navigate('/fiat'),
+      description: 'Open fiat on/off ramp'
+    },
+    {
+      command: 'sell crypto',
+      action: () => navigate('/fiat'),
+      description: 'Open fiat on/off ramp'
+    },
+    {
       command: 'send tokens',
       action: () => navigate('/wallet?action=send'),
       description: 'Open send tokens flow'
@@ -63,6 +73,8 @@ export const useVoiceCommands = () => {
   const mockVoiceRecognition = useCallback((duration: number = 3000) => {
     const mockTranscripts = [
       'check balance',
+      'buy crypto',
+      'sell crypto',
       'send tokens', 
       'view transactions',
       'swap tokens',

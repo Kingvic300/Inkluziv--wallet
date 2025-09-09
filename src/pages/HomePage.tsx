@@ -4,29 +4,43 @@ import { HeroSection } from '@/components/HeroSection';
 import { AuthTabs } from '@/components/AuthTabs';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { Navigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { settings } = useAccessibility();
 
   // Redirect to dashboard if already logged in
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Apply dark mode class to body for homepage
+  React.useEffect(() => {
+    if (settings.theme === 'dark' || settings.theme === 'high-contrast') {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    
+    return () => {
+      document.body.classList.remove('dark');
+    };
+  }, [settings.theme]);
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto px-4 py-8 h-screen"
+        className="container mx-auto px-4 py-8 min-h-screen"
       >
         <div className="absolute top-8 right-8 z-10">
           <DarkModeToggle />
         </div>
         
-        <div className="grid lg:grid-cols-2 gap-8 h-full items-center">
+        <div className="grid lg:grid-cols-2 gap-8 min-h-screen items-center">
           <motion.div
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

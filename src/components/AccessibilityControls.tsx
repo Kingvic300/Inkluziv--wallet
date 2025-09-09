@@ -28,8 +28,8 @@ export const AccessibilityControls: React.FC = () => {
   ];
 
   const themeOptions = [
-    { value: 'light', label: 'Light Theme', icon: '☀️' },
     { value: 'dark', label: 'Dark Theme', icon: '🌙' },
+    { value: 'light', label: 'Light Theme', icon: '☀️' },
     { value: 'high-contrast', label: 'High Contrast', icon: '⚡' },
   ];
 
