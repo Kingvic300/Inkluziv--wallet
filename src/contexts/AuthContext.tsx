@@ -22,8 +22,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>({
     id: '1',
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
+    name: 'Ayodeji Akinwumi',
+    email: 'ayodeji09@gmail.com',
     voiceBiometricEnabled: true,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 2000));
     setUser({
       id: '1',
-      name: 'Alex Johnson',
+      name: 'Ayodeji Akinwumi',
       email,
       voiceBiometricEnabled: true,
     });
@@ -49,8 +49,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 3000));
     setUser({
       id: '1',
-      name: 'Alex Johnson',
-      email: 'alex@example.com',
+      name: 'Ayodeji Akinwumi',
+      email: 'ayodeji09@gmail.com',
       voiceBiometricEnabled: true,
     });
     setIsLoading(false);
