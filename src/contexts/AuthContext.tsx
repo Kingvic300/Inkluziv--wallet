@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     voiceBiometricEnabled: true,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const isAuthenticated = !!user;
 
@@ -58,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    navigate('/');
   };
 
   const setupVoiceBiometric = async () => {
@@ -71,17 +74,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      isLoading,
-      login,
-      loginWithVoice,
-      logout,
-      setupVoiceBiometric,
-    }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{
+        user,
+        isAuthenticated,
+        isLoading,
+        login,
+        loginWithVoice,
+        logout,
+        setupVoiceBiometric,
+      }}>
+        {children}
+      </AuthContext.Provider>
   );
 };
 
