@@ -23,44 +23,47 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AccessibilityProvider>
-      <AuthProvider>
-        <FiatProvider>
-          <WalletProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/*" element={
-                    <div className="min-h-screen bg-background">
-                      <AccessibleNavBar />
-                      <main className="pb-20 md:pb-0">
-                        <Routes>
-                          <Route path="/dashboard" element={<DashboardPage />} />
-                          <Route path="/wallet" element={<WalletPage />} />
-                          <Route path="/swap" element={<SwapPage />} />
-                          <Route path="/staking" element={<StakingPage />} />
-                          <Route path="/fiat" element={<FiatPage />} />
-                          <Route path="/transactions" element={<TransactionsPage />} />
-                          <Route path="/settings" element={<SettingsPage />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </main>
-                      <VoiceCommandButton />
-                    </div>
-                  } />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </WalletProvider>
-        </FiatProvider>
-      </AuthProvider>
-    </AccessibilityProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AccessibilityProvider>
+          <AuthProvider>
+            <FiatProvider>
+              <WalletProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/*"
+                        element={
+                          <div className="min-h-screen bg-background">
+                            <AccessibleNavBar />
+                            <main className="pb-20 md:pb-0">
+                              <Routes>
+                                <Route path="/dashboard" element={<DashboardPage />} />
+                                <Route path="/wallet" element={<WalletPage />} />
+                                <Route path="/swap" element={<SwapPage />} />
+                                <Route path="/staking" element={<StakingPage />} />
+                                <Route path="/fiat" element={<FiatPage />} />
+                                <Route path="/transactions" element={<TransactionsPage />} />
+                                <Route path="/settings" element={<SettingsPage />} />
+                                <Route path="*" element={<NotFound />} />
+                              </Routes>
+                            </main>
+                            <VoiceCommandButton />
+                          </div>
+                        }
+                    />
+                  </Routes>
+                </TooltipProvider>
+              </WalletProvider>
+            </FiatProvider>
+          </AuthProvider>
+        </AccessibilityProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
 );
 
 export default App;
