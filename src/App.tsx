@@ -42,6 +42,7 @@ const App = () => (
                             <AccessibleNavBar />
                             <main className="pb-20 md:pb-0">
                               <Routes>
+                                <Route path="/" element={<HomePage />} />
                                 <Route path="/dashboard" element={<DashboardPage />} />
                                 <Route path="/wallet" element={<WalletPage />} />
                                 <Route path="/swap" element={<SwapPage />} />
