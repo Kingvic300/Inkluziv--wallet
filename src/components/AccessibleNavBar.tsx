@@ -102,10 +102,10 @@ export const AccessibleNavBar: React.FC = () => {
             transition={{ duration: settings.reducedMotion ? 0 : 0.3, delay: 0.1 }}
           >
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">I</span>
+              <span className="text-primary-foreground font-bold text-sm">I</span> {/* Insert logo here*/}
             </div>
             <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Inkluziv
+              INKLUZIV
             </h1>
           </motion.div>
 
