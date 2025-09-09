@@ -36,7 +36,7 @@ export const HeroSection: React.FC = () => {
           transition={{ delay: 0.1, duration: 0.6 }}
         >
           <h1 className="text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Inkluziv
+            INKLUZIV
           </h1>
         </motion.div>
         
@@ -68,7 +68,7 @@ export const HeroSection: React.FC = () => {
         className="space-y-6"
       >
         <h2 className="text-2xl font-semibold text-foreground">
-          Why Choose Inkluziv?
+          Why Choose INKLUZIV?
         </h2>
         
         <div className="grid gap-4">
