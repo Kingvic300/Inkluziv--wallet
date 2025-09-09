@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useToast } from '@/hooks/use-toast';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
 
@@ -17,15 +18,11 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
   triggerButton,
   className = ""
 }) => {
-  const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
-  const recognitionRef = useRef<any>(null);
+  const voiceRecognition = useVoiceRecognition();
   const { toast } = useToast();
 
-  const startListening = useCallback(() => {
-    // Check Web Speech API support
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setIsSupported(false);
+  const handleStartListening = useCallback(() => {
+    if (!voiceRecognition.isSupported) {
       toast({
         title: "Voice Commands Not Supported",
         description: "Your browser doesn't support voice recognition",
@@ -34,26 +31,28 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
+    voiceRecognition.startListening({
+      continuous: false,
+      interimResults: false,
+      timeout: 5000
+    });
     
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.lang = 'en-US';
+    toast({
+      title: "Listening...",
+      description: `Say one of: ${commands.join(', ')}`,
+      duration: 3000
+    });
+  }, [voiceRecognition, commands, toast]);
 
-    recognitionRef.current.onstart = () => {
-      setIsListening(true);
-      toast({
-        title: "Listening...",
-        description: `Say one of: ${commands.join(', ')}`,
-        duration: 3000
-      });
-    };
+  const handleStopListening = useCallback(() => {
+    voiceRecognition.stopListening();
+  }, [voiceRecognition]);
 
-    recognitionRef.current.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript.toLowerCase().trim();
+  // Handle voice recognition results
+  React.useEffect(() => {
+    if (voiceRecognition.transcript && !voiceRecognition.isListening) {
+      const transcript = voiceRecognition.transcript.toLowerCase().trim();
       
-      // Check if the transcript matches any of the expected commands
       const matchedCommand = commands.find(command => 
         transcript.includes(command.toLowerCase())
       );
@@ -65,9 +64,7 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
           duration: 2000
         });
         
-        // Update subtitle overlay
         updateSubtitleOverlay(`Voice command detected: ${matchedCommand}`);
-        
         onCommand(transcript);
       } else {
         toast({
@@ -78,46 +75,21 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
         
         updateSubtitleOverlay(`Command not recognized. Try: ${commands.join(', ')}`);
       }
-    };
+      
+      voiceRecognition.resetTranscript();
+    }
+  }, [voiceRecognition.transcript, voiceRecognition.isListening, commands, onCommand, toast, voiceRecognition]);
 
-    recognitionRef.current.onerror = (event: any) => {
-      setIsListening(false);
-      
-      let errorMessage = "Voice recognition error";
-      switch (event.error) {
-        case 'no-speech':
-          errorMessage = "No speech detected. Please try again.";
-          break;
-        case 'audio-capture':
-          errorMessage = "Microphone access denied.";
-          break;
-        case 'not-allowed':
-          errorMessage = "Microphone permission required.";
-          break;
-        default:
-          errorMessage = `Voice recognition error: ${event.error}`;
-      }
-      
+  // Handle voice recognition errors
+  React.useEffect(() => {
+    if (voiceRecognition.error) {
       toast({
         title: "Voice Command Error",
-        description: errorMessage,
+        description: voiceRecognition.error,
         variant: "destructive"
       });
-    };
-
-    recognitionRef.current.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current.start();
-  }, [commands, onCommand, toast]);
-
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
     }
-  }, []);
+  }, [voiceRecognition.error, toast]);
 
   const updateSubtitleOverlay = (text: string) => {
     const overlay = document.getElementById('subtitle-overlay');
@@ -135,10 +107,10 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
   };
 
   const handleClick = () => {
-    if (isListening) {
-      stopListening();
+    if (voiceRecognition.isListening) {
+      handleStopListening();
     } else {
-      startListening();
+      handleStartListening();
     }
   };
 
@@ -146,8 +118,8 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
   if (triggerButton) {
     return React.cloneElement(triggerButton as React.ReactElement, {
       onClick: handleClick,
-      disabled: !isSupported || (triggerButton as React.ReactElement).props.disabled,
-      'aria-label': `${(triggerButton as React.ReactElement).props['aria-label'] || 'Voice command'} - ${isListening ? 'Stop listening' : 'Start listening'}`
+      disabled: !voiceRecognition.isSupported || (triggerButton as React.ReactElement).props.disabled,
+      'aria-label': `${(triggerButton as React.ReactElement).props['aria-label'] || 'Voice command'} - ${voiceRecognition.isListening ? 'Stop listening' : 'Start listening'}`
     });
   }
 
@@ -155,31 +127,31 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
     <div className={className}>
       <motion.div
         animate={{ 
-          scale: isListening ? 1.05 : 1,
+          scale: voiceRecognition.isListening ? 1.05 : 1,
         }}
         transition={{ 
           duration: 0.2,
-          repeat: isListening ? Infinity : 0,
+          repeat: voiceRecognition.isListening ? Infinity : 0,
           repeatType: "reverse"
         }}
       >
         <Button
           onClick={handleClick}
-          variant={isListening ? "default" : "outline"}
+          variant={voiceRecognition.isListening ? "default" : "outline"}
           size="icon"
-          disabled={!isSupported}
-          className={`relative ${isListening ? 'bg-red-500 hover:bg-red-600' : ''}`}
-          aria-label={isListening ? "Stop voice command listening" : "Start voice command listening"}
-          aria-pressed={isListening}
+          disabled={!voiceRecognition.isSupported}
+          className={`relative ${voiceRecognition.isListening ? 'bg-red-500 hover:bg-red-600' : ''}`}
+          aria-label={voiceRecognition.isListening ? "Stop voice command listening" : "Start voice command listening"}
+          aria-pressed={voiceRecognition.isListening}
         >
-          {isListening ? (
+          {voiceRecognition.isListening ? (
             <MicOff className="h-4 w-4" />
           ) : (
             <Mic className="h-4 w-4" />
           )}
           
           {/* Visual pulse effect when listening */}
-          {isListening && (
+          {voiceRecognition.isListening && (
             <motion.div
               className="absolute inset-0 rounded-md bg-red-500/30"
               initial={{ scale: 1, opacity: 0.7 }}
@@ -195,7 +167,7 @@ export const VoiceCommand: React.FC<VoiceCommandProps> = ({
       </motion.div>
       
       {/* Audio feedback indicator */}
-      {isListening && (
+      {voiceRecognition.isListening && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}

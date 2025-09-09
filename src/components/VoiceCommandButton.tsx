@@ -7,7 +7,16 @@ import { useAccessibility } from '../contexts/AccessibilityContext';
 import { cn } from '../lib/utils';
 
 export const VoiceCommandButton: React.FC = () => {
-  const { isListening, transcript, isProcessing, startListening, stopListening } = useVoiceCommands();
+  const { 
+    isSupported, 
+    isListening, 
+    transcript, 
+    isProcessing, 
+    error,
+    confidence,
+    startListening, 
+    stopListening 
+  } = useVoiceCommands();
   const { settings } = useAccessibility();
 
   const handleClick = () => {
@@ -18,6 +27,11 @@ export const VoiceCommandButton: React.FC = () => {
     }
   };
 
+  // Don't render if voice commands aren't supported
+  if (!isSupported) {
+    return null;
+  }
+
   const getButtonState = () => {
     if (isProcessing) return 'processing';
     if (isListening) return 'listening';
@@ -27,7 +41,7 @@ export const VoiceCommandButton: React.FC = () => {
   const buttonState = getButtonState();
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-20 right-6 md:bottom-6 z-50">
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -40,7 +54,7 @@ export const VoiceCommandButton: React.FC = () => {
       >
         <Button
           onClick={handleClick}
-          disabled={!settings.voiceEnabled || isProcessing}
+          disabled={!settings.voiceEnabled || isProcessing || !isSupported}
           size="lg"
           className={cn(
             'h-16 w-16 rounded-full shadow-strong',
@@ -48,6 +62,7 @@ export const VoiceCommandButton: React.FC = () => {
             'transition-all duration-300',
             buttonState === 'listening' && 'bg-gradient-primary animate-pulse-glow',
             buttonState === 'processing' && 'bg-accent',
+            error && 'bg-destructive',
             buttonState === 'idle' && 'bg-gradient-primary hover:shadow-medium'
           )}
           aria-label={
@@ -57,6 +72,7 @@ export const VoiceCommandButton: React.FC = () => {
                 ? 'Stop listening for voice commands'
                 : 'Start voice command'
           }
+          aria-describedby="voice-command-status"
           aria-describedby="voice-status"
         >
           <AnimatePresence mode="wait">
@@ -98,7 +114,7 @@ export const VoiceCommandButton: React.FC = () => {
 
       {/* Voice Status Overlay */}
       <AnimatePresence>
-        {(isListening || isProcessing || transcript) && (
+        {(isListening || isProcessing || transcript || error) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -106,19 +122,38 @@ export const VoiceCommandButton: React.FC = () => {
             transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
             className="fixed bottom-24 right-6 max-w-xs"
             id="voice-status"
+            role="status"
+            aria-live="polite"
           >
-            <div className="bg-card border border-border rounded-lg p-4 shadow-medium">
+            <div className={cn(
+              "bg-card border rounded-lg p-4 shadow-medium",
+              error ? "border-destructive bg-destructive/5" : "border-border"
+            )}>
               <div className="text-sm font-medium text-card-foreground mb-1">
-                {isProcessing && 'Processing...'}
-                {isListening && !isProcessing && 'Listening...'}
-                {transcript && !isListening && !isProcessing && 'Command received'}
+                {error && 'Voice Error'}
+                {!error && isProcessing && 'Processing...'}
+                {!error && isListening && !isProcessing && 'Listening...'}
+                {!error && transcript && !isListening && !isProcessing && 'Command received'}
               </div>
-              {transcript && (
-                <div className="text-xs text-muted-foreground">
-                  "{transcript}"
+              
+              {error && (
+                <div className="text-xs text-destructive">
+                  {error}
                 </div>
               )}
-              {isListening && !transcript && (
+              
+              {transcript && !error && (
+                <div className="text-xs text-muted-foreground">
+                  "{transcript}"
+                  {confidence > 0 && (
+                    <span className="ml-2 text-success">
+                      ({Math.round(confidence * 100)}% confidence)
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {isListening && !transcript && !error && (
                 <div className="text-xs text-muted-foreground">
                   Try: "check balance", "send tokens", "view transactions"
                 </div>

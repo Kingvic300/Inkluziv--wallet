@@ -45,6 +45,20 @@ const HomePage: React.FC = () => {
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.8 }}
+            className="flex flex-col items-center lg:items-start"
+          >
+            <motion.div 
+              className="mb-8"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+            >
+              <img 
+                src="https://images.pexels.com/photos/6801648/pexels-photo-6801648.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop" 
+                alt="Inkluziv - Voice-enabled accessible crypto wallet logo showing inclusivity and accessibility" 
+                className="w-24 h-24 rounded-2xl shadow-strong border-2 border-primary/20"
+              />
+            </motion.div>
           >
             <HeroSection />
           </motion.div>

@@ -29,7 +29,7 @@ export const HeroSection: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Main Branding */}
-      <div className="space-y-6">
+      <div className="space-y-6 text-center lg:text-left">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -53,7 +53,7 @@ export const HeroSection: React.FC = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="text-lg text-muted-foreground max-w-lg"
+          className="text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0"
         >
           The world's first crypto wallet designed with accessibility at its core. 
           Experience DeFi through voice commands, screen readers, and inclusive design.
@@ -65,7 +65,7 @@ export const HeroSection: React.FC = () => {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.8 }}
-        className="space-y-6"
+        className="space-y-6 text-center lg:text-left"
       >
         <h2 className="text-2xl font-semibold text-foreground">
           Why Choose INKLUZIV?

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccessibility } from '../contexts/AccessibilityContext';
+import { useVoiceRecognition } from './useVoiceRecognition';
 
 export interface VoiceCommand {
   command: string;
@@ -12,9 +13,11 @@ export const useVoiceCommands = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastCommand, setLastCommand] = useState<string>('');
   const navigate = useNavigate();
   const { announceToScreenReader } = useAccessibility();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  
+  const voiceRecognition = useVoiceRecognition();
 
   // Mock voice commands
   const commands: VoiceCommand[] = [
@@ -70,79 +73,73 @@ export const useVoiceCommands = () => {
     },
   ];
 
-  const mockVoiceRecognition = useCallback((duration: number = 3000) => {
-    const mockTranscripts = [
-      'check balance',
-      'buy crypto',
-      'sell crypto',
-      'send tokens', 
-      'view transactions',
-      'swap tokens',
-      'stake tokens',
-      'go to dashboard',
-      'open settings',
-      'receive payment'
-    ];
+  /**
+   * Process voice command and execute corresponding action
+   */
+  const processCommand = useCallback((transcript: string) => {
+    setIsProcessing(true);
+    setLastCommand(transcript);
     
-    const randomTranscript = mockTranscripts[Math.floor(Math.random() * mockTranscripts.length)];
+    // Find matching command (case-insensitive, partial match)
+    const matchedCommand = commands.find(cmd => 
+      transcript.toLowerCase().includes(cmd.command.toLowerCase()) ||
+      cmd.command.toLowerCase().includes(transcript.toLowerCase())
+    );
     
-    setTimeout(() => {
-      setTranscript(randomTranscript);
-      setIsListening(false);
-      setIsProcessing(true);
+    if (matchedCommand) {
+      announceToScreenReader(`Executing command: ${matchedCommand.description}`);
       
-      // Process the command
-      const matchedCommand = commands.find(cmd => 
-        cmd.command.toLowerCase() === randomTranscript.toLowerCase()
-      );
-      
-      if (matchedCommand) {
-        announceToScreenReader(`Executing command: ${matchedCommand.description}`);
-        setTimeout(() => {
-          matchedCommand.action();
-          setIsProcessing(false);
-          setTranscript('');
-        }, 1000);
-      } else {
-        announceToScreenReader('Command not recognized. Please try again.');
+      // Execute command after brief delay for user feedback
+      setTimeout(() => {
+        matchedCommand.action();
         setIsProcessing(false);
         setTranscript('');
-      }
-    }, duration);
+        setLastCommand('');
+      }, 1000);
+    } else {
+      announceToScreenReader(`Command "${transcript}" not recognized. Please try again.`);
+      setIsProcessing(false);
+      
+      // Clear transcript after showing error
+      setTimeout(() => {
+        setTranscript('');
+        setLastCommand('');
+      }, 3000);
+    }
   }, [commands, announceToScreenReader]);
 
+  /**
+   * Start listening for voice commands
+   */
   const startListening = useCallback(() => {
-    if (isListening) return;
+    if (isListening || !voiceRecognition.isSupported) {
+      if (!voiceRecognition.isSupported) {
+        announceToScreenReader('Voice commands not supported in this browser');
+      }
+      return;
+    }
     
     setIsListening(true);
     setTranscript('');
     setIsProcessing(false);
+    setLastCommand('');
     announceToScreenReader('Voice command listening started');
     
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // Start mock voice recognition
-    mockVoiceRecognition();
-    
-    // Auto-stop after 5 seconds
-    timeoutRef.current = setTimeout(() => {
-      if (isListening) {
-        stopListening();
-        announceToScreenReader('Voice command timeout');
-      }
-    }, 5000);
-  }, [isListening, mockVoiceRecognition, announceToScreenReader]);
+    // Start real voice recognition
+    voiceRecognition.startListening({
+      continuous: false,
+      interimResults: true,
+      timeout: 8000 // 8 second timeout
+    });
+  }, [isListening, voiceRecognition, announceToScreenReader]);
 
+  /**
+   * Stop listening for voice commands
+   */
   const stopListening = useCallback(() => {
-    setIsListening(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    voiceRecognition.stopListening();
     announceToScreenReader('Voice command stopped');
-  }, [announceToScreenReader]);
+  }, [voiceRecognition, announceToScreenReader]);
 
   const executeCommand = useCallback((commandText: string) => {
     const matchedCommand = commands.find(cmd => 
@@ -157,22 +154,52 @@ export const useVoiceCommands = () => {
     return false;
   }, [commands, announceToScreenReader]);
 
-  // Cleanup on unmount
+  // Sync with voice recognition state
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    setIsListening(voiceRecognition.isListening);
+  }, [voiceRecognition.isListening]);
+
+  // Process transcript when recognition completes
+  useEffect(() => {
+    if (voiceRecognition.transcript && !voiceRecognition.isListening && !isProcessing) {
+      setTranscript(voiceRecognition.transcript);
+      processCommand(voiceRecognition.transcript);
+    }
+  }, [voiceRecognition.transcript, voiceRecognition.isListening, isProcessing, processCommand]);
+
+  // Handle voice recognition errors
+  useEffect(() => {
+    if (voiceRecognition.error) {
+      setIsListening(false);
+      setIsProcessing(false);
+      announceToScreenReader(`Voice recognition error: ${voiceRecognition.error}`);
+      
+      // Clear error after announcement
+      setTimeout(() => {
+        voiceRecognition.resetTranscript();
+      }, 2000);
+    }
+  }, [voiceRecognition.error, voiceRecognition.resetTranscript, announceToScreenReader]);
+
+  // Update transcript display
+  useEffect(() => {
+    if (voiceRecognition.transcript && voiceRecognition.isListening) {
+      setTranscript(voiceRecognition.transcript);
       }
-    };
-  }, []);
+  }, [voiceRecognition.transcript, voiceRecognition.isListening]);
 
   return {
+    isSupported: voiceRecognition.isSupported,
     isListening,
     transcript,
     isProcessing,
+    lastCommand,
+    confidence: voiceRecognition.confidence,
+    error: voiceRecognition.error,
     commands,
     startListening,
     stopListening,
     executeCommand,
+    resetTranscript: voiceRecognition.resetTranscript
   };
 };

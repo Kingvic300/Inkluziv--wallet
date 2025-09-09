@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { Eye, EyeOff, Mic } from 'lucide-react';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -30,7 +31,7 @@ export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps
     ...props 
   }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
-    const [isListeningForVoice, setIsListeningForVoice] = useState(false);
+    const voiceRecognition = useVoiceRecognition();
     const { settings, announceToScreenReader } = useAccessibility();
 
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
@@ -42,20 +43,32 @@ export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps
       : type;
 
     const handleVoiceInput = () => {
-      if (!voiceInputEnabled || !onVoiceInput) return;
+      if (!voiceInputEnabled || !onVoiceInput || !voiceRecognition.isSupported) return;
       
-      setIsListeningForVoice(true);
       announceToScreenReader('Voice input started');
       
-      // Mock voice input - in real app would use speech recognition
-      setTimeout(() => {
-        const mockInputs = ['0.5', '100', 'ethereum', 'send to alice'];
-        const mockInput = mockInputs[Math.floor(Math.random() * mockInputs.length)];
-        onVoiceInput(mockInput);
-        setIsListeningForVoice(false);
-        announceToScreenReader(`Voice input received: ${mockInput}`);
-      }, 2000);
+      voiceRecognition.startListening({
+        continuous: false,
+        interimResults: false,
+        timeout: 5000
+      });
     };
+
+    // Handle voice recognition results
+    React.useEffect(() => {
+      if (voiceRecognition.transcript && !voiceRecognition.isListening && onVoiceInput) {
+        onVoiceInput(voiceRecognition.transcript);
+        announceToScreenReader(`Voice input received: ${voiceRecognition.transcript}`);
+        voiceRecognition.resetTranscript();
+      }
+    }, [voiceRecognition.transcript, voiceRecognition.isListening, onVoiceInput, announceToScreenReader, voiceRecognition]);
+
+    // Handle voice recognition errors
+    React.useEffect(() => {
+      if (voiceRecognition.error) {
+        announceToScreenReader(`Voice input error: ${voiceRecognition.error}`);
+      }
+    }, [voiceRecognition.error, announceToScreenReader]);
 
     return (
       <motion.div 
@@ -108,16 +121,16 @@ export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps
           />
 
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            {voiceInputEnabled && (
+            {voiceInputEnabled && voiceRecognition.isSupported && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={handleVoiceInput}
-                disabled={isListeningForVoice}
+                disabled={voiceRecognition.isListening}
                 className={cn(
                   'h-8 w-8 p-0',
-                  isListeningForVoice && 'animate-pulse text-primary'
+                  voiceRecognition.isListening && 'animate-pulse text-primary'
                 )}
                 aria-label="Voice input"
               >
