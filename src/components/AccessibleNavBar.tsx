@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -9,10 +9,20 @@ import {
   Banknote,
   History, 
   Settings,
-  User
+  User,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { useAuth } from '../contexts/AuthContext';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 import { cn } from '../lib/utils';
@@ -26,7 +36,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    to: '/',
+    to: '/dashboard',
     icon: Home,
     label: 'Dashboard',
     description: 'Main dashboard overview'
@@ -73,6 +83,7 @@ export const AccessibleNavBar: React.FC = () => {
   const { user, logout } = useAuth();
   const { settings, announceToScreenReader } = useAccessibility();
   const location = useLocation();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleNavClick = (item: NavItem) => {
     announceToScreenReader(`Navigating to ${item.label}: ${item.description}`);
@@ -83,9 +94,23 @@ export const AccessibleNavBar: React.FC = () => {
     logout();
   };
 
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const truncateEmail = (email: string, maxLength: number = 20) => {
+    if (email.length <= maxLength) return email;
+    return `${email.slice(0, maxLength)}...`;
+  };
+
   return (
     <motion.nav
-      className="bg-card border-b border-border"
+      className="bg-card border-b border-border sticky top-0 z-50"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: settings.reducedMotion ? 0 : 0.3 }}
@@ -94,9 +119,9 @@ export const AccessibleNavBar: React.FC = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Brand */}
+          {/* Logo and Brand - Always on left */}
           <motion.div 
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 flex-shrink-0"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: settings.reducedMotion ? 0 : 0.3, delay: 0.1 }}
@@ -119,8 +144,8 @@ export const AccessibleNavBar: React.FC = () => {
             </h1>
           </motion.div>
 
-          {/* Navigation Links - Hidden on mobile, shown on desktop */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation Links - Hidden on mobile */}
+          <div className="hidden lg:flex items-center space-x-1 flex-1 justify-center max-w-2xl">
             {navItems.map((item, index) => {
               const isActive = location.pathname === item.to;
               const Icon = item.icon;
@@ -150,7 +175,7 @@ export const AccessibleNavBar: React.FC = () => {
                     aria-describedby={`nav-${item.to.replace('/', '')}-description`}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
-                    <span>{item.label}</span>
+                    <span className="hidden xl:inline">{item.label}</span>
                   </NavLink>
                   
                   {/* Screen reader description */}
@@ -165,48 +190,138 @@ export const AccessibleNavBar: React.FC = () => {
             })}
           </div>
 
-          {/* User Menu */}
-          <motion.div 
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: settings.reducedMotion ? 0 : 0.3, delay: 0.2 }}
-          >
-            {user && (
-              <>
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-foreground">
+          {/* User Profile Section */}
+          {user && (
+            <motion.div 
+              className="flex items-center gap-3 flex-shrink-0"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: settings.reducedMotion ? 0 : 0.3, delay: 0.2 }}
+            >
+              {/* Desktop User Info - Hidden on mobile/tablet */}
+              <div className="hidden xl:flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-foreground truncate max-w-32">
                     {user.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {user.email}
+                  <p className="text-xs text-muted-foreground truncate max-w-32">
+                    {truncateEmail(user.email)}
                   </p>
                 </div>
-                
-                <Avatar className="h-10 w-10 border-2 border-primary/20">
-                  <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
                 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="hidden sm:flex"
+                  className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors"
                   aria-label="Logout from Inkluziv"
                 >
-                  Logout
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden 2xl:inline">Logout</span>
                 </Button>
-              </>
-            )}
-          </motion.div>
+              </div>
+
+              {/* Mobile/Tablet Profile Dropdown */}
+              <div className="xl:hidden">
+                <DropdownMenu open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 p-2 hover:bg-muted transition-colors"
+                      aria-label="Open user profile menu"
+                      aria-expanded={isProfileOpen}
+                    >
+                      <Avatar className="h-8 w-8 border-2 border-primary/20">
+                        <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-semibold">
+                          {getUserInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        isProfileOpen && "rotate-180"
+                      )} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-64 bg-popover border border-border shadow-strong"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuLabel className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-primary/20">
+                          <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                            {getUserInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {user.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Desktop Avatar - Always visible */}
+              <div className="hidden xl:block">
+                <Avatar className="h-10 w-10 border-2 border-primary/20">
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                    {getUserInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Mobile Navigation - Bottom Tab Style */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
-          <div className="grid grid-cols-6 gap-1 p-2">
-            {navItems.map((item) => {
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
+          <div className="grid grid-cols-4 gap-1 p-2">
+            {navItems.slice(0, 4).map((item) => {
+              const isActive = location.pathname === item.to;
+              const Icon = item.icon;
+              
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => handleNavClick(item)}
+                  className={cn(
+                    'flex flex-col items-center justify-center p-3 rounded-md text-xs font-medium transition-colors',
+                    'min-h-touch focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                  aria-label={`${item.label}: ${item.description}`}
+                >
+                  <Icon className="h-5 w-5 mb-1" aria-hidden="true" />
+                  <span className="text-[10px] leading-tight">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+          
+          {/* Secondary mobile nav for remaining items */}
+          <div className="grid grid-cols-3 gap-1 p-2 pt-0 border-t border-border/50">
+            {navItems.slice(4).map((item) => {
               const isActive = location.pathname === item.to;
               const Icon = item.icon;
               
@@ -224,8 +339,8 @@ export const AccessibleNavBar: React.FC = () => {
                   )}
                   aria-label={`${item.label}: ${item.description}`}
                 >
-                  <Icon className="h-5 w-5 mb-1" aria-hidden="true" />
-                  <span className="text-[10px]">{item.label}</span>
+                  <Icon className="h-4 w-4 mb-1" aria-hidden="true" />
+                  <span className="text-[9px] leading-tight">{item.label}</span>
                 </NavLink>
               );
             })}

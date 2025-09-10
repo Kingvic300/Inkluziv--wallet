@@ -6,6 +6,7 @@ import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { Navigate } from 'react-router-dom';
+import { VoiceNavigationButton } from '@/components/VoiceNavigationButton';
 import { Shield, Mic, Globe } from "lucide-react";
 
 const HomePage: React.FC = () => {
@@ -40,6 +41,13 @@ const HomePage: React.FC = () => {
         >
           <div className="absolute top-8 right-8 z-10">
             <DarkModeToggle />
+          </div>
+          
+          <div className="absolute top-8 right-20 z-10">
+            <VoiceNavigationButton 
+              variant="outline"
+              size="default"
+            />
           </div>
 
           {/* Hero + Auth */}
