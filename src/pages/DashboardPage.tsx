@@ -16,6 +16,7 @@ import { Progress } from '../components/ui/progress';
 import { TransactionCard } from '../components/TransactionCard';
 import { useWallet } from '../contexts/WalletContext';
 import { useAccessibility } from '../contexts/AccessibilityContext';
+import { VoiceNavigationButton } from '../components/VoiceNavigationButton';
 
 export const DashboardPage: React.FC = () => {
   const { balances, transactions, stakingPools } = useWallet();
@@ -70,17 +71,24 @@ export const DashboardPage: React.FC = () => {
     >
       {/* Page Header */}
       <motion.div 
-        className="space-y-2"
+        className="flex items-start justify-between"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: settings.reducedMotion ? 0 : 0.3, delay: 0.1 }}
       >
-        <h1 className="text-3xl font-bold text-foreground">
-          Welcome back!
-        </h1>
-        <p className="text-muted-foreground">
-          Here's an overview of your crypto portfolio and recent activity.
-        </p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome back!
+          </h1>
+          <p className="text-muted-foreground">
+            Here's an overview of your crypto portfolio and recent activity.
+          </p>
+        </div>
+        
+        <VoiceNavigationButton 
+          size="lg"
+          className="flex-shrink-0"
+        />
       </motion.div>
 
       {/* Portfolio Overview */}
