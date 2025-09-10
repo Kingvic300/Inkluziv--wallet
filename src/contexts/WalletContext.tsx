@@ -46,11 +46,12 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isConnected] = useState(true); // Mock connected state
 
   const [balances, setBalances] = useState<TokenBalance[]>([
-    { symbol: 'ETH', balance: 2.5, usdValue: 4125.50 },
-    { symbol: 'USDC', balance: 1250.75, usdValue: 1250.75 },
-    { symbol: 'BTC', balance: 0.05, usdValue: 1847.25 },
-    { symbol: 'MATIC', balance: 100.0, usdValue: 89.50 },
+    { symbol: 'ETH', balance: 0.25, usdValue: 12.55 },
+    { symbol: 'USDC', balance: 120.75, usdValue: 20.75 },
+    { symbol: 'BTC', balance: 0.005, usdValue: 84.73 },
+    { symbol: 'MATIC', balance: 10.0, usdValue: 8.95 },
   ]);
+
 
   const [transactions, setTransactions] = useState<Transaction[]>([
     {

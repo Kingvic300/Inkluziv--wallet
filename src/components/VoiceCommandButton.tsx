@@ -7,30 +7,24 @@ import { useAccessibility } from '../contexts/AccessibilityContext';
 import { cn } from '../lib/utils';
 
 export const VoiceCommandButton: React.FC = () => {
-  const { 
-    isSupported, 
-    isListening, 
-    transcript, 
-    isProcessing, 
+  const {
+    isSupported,
+    isListening,
+    transcript,
+    isProcessing,
     error,
     confidence,
-    startListening, 
-    stopListening 
+    toggleListening,   // ✅ now using toggle
+    resetTranscript// ✅ exposed in hook
   } = useVoiceCommands();
+
   const { settings } = useAccessibility();
 
   const handleClick = () => {
-    if (isListening) {
-      stopListening();
-    } else {
-      startListening();
-    }
+    toggleListening();
   };
 
-  // Don't render if voice commands aren't supported
-  if (!isSupported) {
-    return null;
-  }
+  if (!isSupported) return null;
 
   const getButtonState = () => {
     if (isProcessing) return 'processing';
@@ -41,127 +35,111 @@ export const VoiceCommandButton: React.FC = () => {
   const buttonState = getButtonState();
 
   return (
-    <div className="fixed bottom-20 right-6 md:bottom-6 z-50">
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 300, 
-          damping: 20,
-          duration: settings.reducedMotion ? 0 : undefined 
-        }}
-      >
-        <Button
-          onClick={handleClick}
-          disabled={!settings.voiceEnabled || isProcessing || !isSupported}
-          size="lg"
-          className={cn(
-            'h-16 w-16 rounded-full shadow-strong',
-            'focus:ring-4 focus:ring-primary/50',
-            'transition-all duration-300',
-            buttonState === 'listening' && 'bg-gradient-primary animate-pulse-glow',
-            buttonState === 'processing' && 'bg-accent',
-            error && 'bg-destructive',
-            buttonState === 'idle' && 'bg-gradient-primary hover:shadow-medium'
-          )}
-          aria-label={
-            isProcessing 
-              ? 'Processing voice command'
-              : isListening 
-                ? 'Stop listening for voice commands'
-                : 'Start voice command'
-          }
-          aria-describedby="voice-command-status"
-          aria-describedby="voice-status"
+      <div className="fixed bottom-20 right-6 md:bottom-6 z-50">
+        <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              duration: settings.reducedMotion ? 0 : undefined
+            }}
         >
-          <AnimatePresence mode="wait">
-            {isProcessing ? (
-              <motion.div
-                key="processing"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1, rotate: 360 }}
-                exit={{ scale: 0 }}
-                transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
-              >
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </motion.div>
-            ) : isListening ? (
-              <motion.div
-                key="listening"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
-                className="animate-voice-pulse"
-              >
-                <Mic className="h-6 w-6" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="idle"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
-              >
-                <MicOff className="h-6 w-6" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Button>
-      </motion.div>
-
-      {/* Voice Status Overlay */}
-      <AnimatePresence>
-        {(isListening || isProcessing || transcript || error) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
-            className="fixed bottom-24 right-6 max-w-xs"
-            id="voice-status"
-            role="status"
-            aria-live="polite"
-          >
-            <div className={cn(
-              "bg-card border rounded-lg p-4 shadow-medium",
-              error ? "border-destructive bg-destructive/5" : "border-border"
-            )}>
-              <div className="text-sm font-medium text-card-foreground mb-1">
-                {error && 'Voice Error'}
-                {!error && isProcessing && 'Processing...'}
-                {!error && isListening && !isProcessing && 'Listening...'}
-                {!error && transcript && !isListening && !isProcessing && 'Command received'}
-              </div>
-              
-              {error && (
-                <div className="text-xs text-destructive">
-                  {error}
-                </div>
+          <Button
+              onClick={handleClick}
+              disabled={!settings.voiceEnabled || isProcessing || !isSupported}
+              size="lg"
+              className={cn(
+                  'h-16 w-16 rounded-full shadow-strong',
+                  'focus:ring-4 focus:ring-primary/50',
+                  'transition-all duration-300',
+                  buttonState === 'listening' && 'bg-gradient-primary animate-pulse-glow',
+                  buttonState === 'processing' && 'bg-accent',
+                  error && 'bg-destructive',
+                  buttonState === 'idle' && 'bg-gradient-primary hover:shadow-medium'
               )}
-              
-              {transcript && !error && (
-                <div className="text-xs text-muted-foreground">
-                  "{transcript}"
-                  {confidence > 0 && (
-                    <span className="ml-2 text-success">
+              aria-label={
+                isProcessing
+                    ? 'Processing voice command'
+                    : isListening
+                        ? 'Stop listening for voice commands'
+                        : 'Start voice command'
+              }
+              aria-describedby="voice-status"
+          >
+            <AnimatePresence mode="wait">
+              {isProcessing ? (
+                  <motion.div key="processing" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </motion.div>
+              ) : isListening ? (
+                  <motion.div
+                      key="listening"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="animate-voice-pulse"
+                  >
+                    <Mic className="h-6 w-6" />
+                  </motion.div>
+              ) : (
+                  <motion.div key="idle" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <MicOff className="h-6 w-6" />
+                  </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
+        </motion.div>
+
+        {/* Voice Status Overlay */}
+        <AnimatePresence>
+          {(isListening || isProcessing || transcript || error) && (
+              <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: settings.reducedMotion ? 0 : 0.2 }}
+                  className="fixed bottom-24 right-6 max-w-xs"
+                  id="voice-status"
+                  role="status"
+                  aria-live="polite"
+              >
+                <div
+                    className={cn(
+                        "bg-card border rounded-lg p-4 shadow-medium",
+                        error ? "border-destructive bg-destructive/5" : "border-border"
+                    )}
+                >
+                  <div className="text-sm font-medium text-card-foreground mb-1">
+                    {error && 'Voice Error'}
+                    {!error && isProcessing && 'Processing...'}
+                    {!error && isListening && !isProcessing && 'Listening...'}
+                    {!error && transcript && !isListening && !isProcessing && 'Command received'}
+                  </div>
+
+                  {error && <div className="text-xs text-destructive">{error}</div>}
+
+                  {transcript && !error && (
+                      <div className="text-xs text-muted-foreground">
+                        "{transcript}"
+                        {confidence > 0 && (
+                            <span className="ml-2 text-success">
                       ({Math.round(confidence * 100)}% confidence)
                     </span>
+                        )}
+                      </div>
+                  )}
+
+                  {isListening && !transcript && !error && (
+                      <div className="text-xs text-muted-foreground">
+                        Try: "check balance", "send tokens", "view transactions"
+                      </div>
                   )}
                 </div>
-              )}
-              
-              {isListening && !transcript && !error && (
-                <div className="text-xs text-muted-foreground">
-                  Try: "check balance", "send tokens", "view transactions"
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
   );
 };
